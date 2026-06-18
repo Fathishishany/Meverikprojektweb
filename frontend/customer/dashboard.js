@@ -240,7 +240,7 @@ async function loadTicketChatInfo(ticketId) {
       ? `<img class="ticket-chat-info__qr" src="${t.qrCodeDataUrl}" alt="QR code for ticket ${t.id}" />`
       : "";
     const paymentHtml = t.paid
-      ? `<p class="payment-status payment-status--paid">✓ Paid</p>`
+      ? `<div class="payment-action"><p class="payment-status payment-status--paid">✓ Paid</p></div>`
       : `<div class="payment-action"><button type="button" class="btn btn--accent" id="pay-btn">Pay now</button></div>`;
 
     ticketChatInfo.innerHTML = `
