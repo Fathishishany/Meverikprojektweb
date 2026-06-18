@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Change Requests — Meverik Ops</title>
+  <meta name="description" content="Internal dashboard for the Meverik team to manage customer change requests." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar__inner container">
+      <p class="brand">Meverik<span class="brand__dot">.</span> <span class="muted">Ops</span></p>
+      <div class="topbar__right">
+        <a href="admin.html" class="btn btn--ghost btn--small">&larr; Tickets</a>
+        <span class="muted" id="welcome-text"></span>
+        <button class="btn btn--ghost" id="logout-btn" type="button">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container dashboard-main">
+
+    <section class="panel">
+      <div class="panel__header">
+        <h2>Change Requests</h2>
+      </div>
+    </section>
+
+    <div class="filter-bar">
+      <div class="filter-group" id="filter-group" role="group" aria-label="Filter change requests by status">
+        <button class="filter-btn is-active" data-status="" type="button">All</button>
+        <button class="filter-btn" data-status="new" type="button">New</button>
+        <button class="filter-btn" data-status="in_progress" type="button">In progress</button>
+        <button class="filter-btn" data-status="done" type="button">Done</button>
+      </div>
+      <button class="btn btn--ghost" id="refresh-btn" type="button">Refresh</button>
+    </div>
+
+    <p class="form-error" id="dashboard-error" hidden></p>
+    <p class="muted" id="empty-state" hidden>No change requests match this filter.</p>
+
+    <!-- ---- DESKTOP: Tabellen-Ansicht ---- -->
+    <div class="manifest-wrap">
+      <table class="manifest">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">For Ticket</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Size</th>
+            <th scope="col">Description</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="manifest-body"></tbody>
+      </table>
+    </div>
+
+    <!-- ---- MOBILE: gestapelte Karten ---- -->
+    <div class="boarding-passes" id="boarding-passes"></div>
+
+  </main>
+
+  <script src="changes.js"></script>
+</body>
+</html>

@@ -35,10 +35,8 @@
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panel__header">
-          <h2>Request a new website</h2>
-        </div>
+      <details class="panel panel--collapsible">
+        <summary>Request a new website</summary>
         <form id="order-form" novalidate>
           <div class="form-grid">
             <div class="field">
@@ -71,7 +69,56 @@
             <button type="submit" class="btn btn--accent" id="order-submit">Submit request</button>
           </div>
         </form>
+      </details>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2>Your change requests</h2>
+        </div>
+        <div id="my-changes-list">
+          <p class="muted">Loading…</p>
+        </div>
+        <p class="form-error" id="my-changes-error" role="alert" hidden></p>
       </section>
+
+      <details class="panel panel--collapsible">
+        <summary>Request a change</summary>
+
+        <div class="change-policy">
+          <p>Once your site is live, you can request updates right here — no need to start a new ticket. Changes are free while we're still building; pricing below applies after delivery.</p>
+          <ul class="change-policy__tiers">
+            <li><strong>Small — €5</strong> Text edits, swapping a photo, updating contact details.</li>
+            <li><strong>Medium — €25</strong> A new section, layout or color adjustments within the same page.</li>
+            <li><strong>Large — €50</strong> A new feature like a booking form, or larger content changes.</li>
+          </ul>
+          <p class="muted">The core concept of your site stays the same — we won't turn an online shop into a photo gallery for €50, that's a new project. Not sure which tier fits? Just describe what you need and we'll confirm the price first.</p>
+        </div>
+
+        <form id="change-form" novalidate>
+          <div class="field">
+            <label for="change-ticketId">Which website?</label>
+            <select id="change-ticketId" required>
+              <option value="" disabled selected>Choose a ticket…</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="change-package">Change size</label>
+            <select id="change-package" required>
+              <option value="" disabled selected>Choose a size…</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="change-description">What would you like changed?</label>
+            <textarea id="change-description" rows="3" placeholder="Describe the change you'd like…"></textarea>
+          </div>
+
+          <p class="form-error" id="change-error" role="alert" hidden></p>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--accent" id="change-submit">Submit change request</button>
+          </div>
+        </form>
+      </details>
     </div>
 
     <!-- Ticket-Detail + Chat mit dem Admin (ersetzt optisch das Grid, wenn offen) -->

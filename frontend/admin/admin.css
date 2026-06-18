@@ -92,6 +92,7 @@ h2 { font-size: 1.3rem; }
 .btn--accent:hover { background: var(--color-accent-strong); }
 .btn--ghost { background: transparent; border-color: var(--color-border); color: var(--color-text); }
 .btn--ghost:hover { border-color: var(--color-accent); }
+.btn--small { padding: 8px 16px; font-size: 0.85rem; }
 .btn--full { width: 100%; }
 
 .btn-icon {

@@ -72,6 +72,13 @@ function canAccessTicket(req, ticket) {
   return false;
 }
 
+// Gleiches Prinzip wie canAccessTicket, nur fuer Change Requests.
+function canAccessChangeRequest(req, changeRequest) {
+  if (req.session.role === "admin") return true;
+  if (req.session.role === "customer") return changeRequest.customerId === req.session.userId;
+  return false;
+}
+
 app.use("/customer", express.static(path.join(__dirname, "../frontend/customer")));
 app.use("/admin", express.static(path.join(__dirname, "../frontend/admin")));
 app.get("/", (req, res) => res.redirect("/customer/index.html"));
@@ -316,6 +323,182 @@ app.get("/api/tickets/:id/confirm-payment", requireAnyAuth, async (req, res) => 
     }
 
     sendData(req, res, { ticket }, "ticket");
+  } catch (err) {
+    res.status(500);
+    sendData(req, res, { error: `Stripe-Fehler: ${err.message}` }, "error");
+  }
+});
+
+// ============================================================================
+// CHANGE REQUESTS (Aenderungswuensche an einer bereits gelieferten Webseite)
+// ============================================================================
+
+app.get("/api/change-packages", (req, res) => {
+  sendData(req, res, { changePackages: db.getAllChangePackages() }, "changePackages");
+});
+
+app.get("/api/change-requests/mine", (req, res) => {
+  if (!req.session || req.session.role !== "customer") {
+    res.status(401);
+    return sendData(req, res, { error: "Nicht als Kunde eingeloggt." }, "error");
+  }
+  const changeRequests = db.getChangeRequestsByCustomerId(req.session.userId);
+  sendData(req, res, { changeRequests }, "changeRequests");
+});
+
+app.get("/api/change-requests", requireAuth, (req, res) => {
+  sendData(req, res, { changeRequests: db.getAllChangeRequests() }, "changeRequests");
+});
+
+app.post("/api/change-requests", requireAnyAuth, (req, res) => {
+  const { ticketId, changePackage, description } = req.body;
+
+  if (!ticketId || !changePackage) {
+    res.status(400);
+    return sendData(req, res, { error: "ticketId und changePackage sind Pflichtfelder." }, "error");
+  }
+
+  const ticket = db.getTicketById(ticketId);
+  if (!ticket) {
+    res.status(404);
+    return sendData(req, res, { error: `Ticket ${ticketId} nicht gefunden.` }, "error");
+  }
+  if (!canAccessTicket(req, ticket)) {
+    res.status(403);
+    return sendData(req, res, { error: "Dieses Ticket gehoert nicht zu deinem Account." }, "error");
+  }
+  if (!db.getChangePackageById(changePackage)) {
+    res.status(400);
+    return sendData(req, res, { error: `Unbekanntes Change-Paket: ${changePackage}` }, "error");
+  }
+
+  const customerId = req.session.role === "customer" ? req.session.userId : null;
+  const changeRequest = db.createChangeRequest({
+    ticketId,
+    changePackage,
+    description,
+    customerId,
+    customerName: req.session.username,
+    email: ticket.email,
+  });
+
+  res.status(201);
+  sendData(req, res, { changeRequest }, "changeRequest");
+});
+
+app.patch("/api/change-requests/:id", requireAuth, (req, res) => {
+  const { status } = req.body;
+  if (!["new", "in_progress", "done"].includes(status)) {
+    res.status(400);
+    return sendData(req, res, { error: "Status muss new, in_progress oder done sein." }, "error");
+  }
+  const updated = db.patchChangeRequest(req.params.id, { status });
+  if (!updated) {
+    res.status(404);
+    return sendData(req, res, { error: "Change Request nicht gefunden." }, "error");
+  }
+  sendData(req, res, { changeRequest: updated }, "changeRequest");
+});
+
+app.delete("/api/change-requests/:id", requireAuth, (req, res) => {
+  const ok = db.deleteChangeRequest(req.params.id);
+  if (!ok) {
+    res.status(404);
+    return sendData(req, res, { error: "Change Request nicht gefunden." }, "error");
+  }
+  sendData(req, res, { deleted: true, id: req.params.id }, "result");
+});
+
+/**
+ * POST /api/change-requests/:id/checkout
+ * Wie /api/tickets/:id/checkout, nur fuer den Preis des gewaehlten
+ * Change-Pakets (klein/mittel/gross).
+ */
+app.post("/api/change-requests/:id/checkout", requireAnyAuth, async (req, res) => {
+  if (!stripe) {
+    res.status(500);
+    return sendData(req, res, { error: "Zahlungen sind aktuell nicht konfiguriert (STRIPE_SECRET_KEY fehlt)." }, "error");
+  }
+
+  const changeRequest = db.getChangeRequestById(req.params.id);
+  if (!changeRequest) {
+    res.status(404);
+    return sendData(req, res, { error: "Change Request nicht gefunden." }, "error");
+  }
+  if (!canAccessChangeRequest(req, changeRequest)) {
+    res.status(403);
+    return sendData(req, res, { error: "Kein Zugriff auf diesen Change Request." }, "error");
+  }
+  if (changeRequest.paid) {
+    res.status(400);
+    return sendData(req, res, { error: "Dieser Change Request ist bereits bezahlt." }, "error");
+  }
+
+  const pkg = db.getChangePackageById(changeRequest.changePackage);
+  if (!pkg) {
+    res.status(400);
+    return sendData(req, res, { error: `Unbekanntes Change-Paket: ${changeRequest.changePackage}` }, "error");
+  }
+
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: { name: `Meverik ${pkg.name} – ${changeRequest.id} (${changeRequest.ticketId})` },
+            unit_amount: pkg.priceEUR * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${baseUrl}/customer/dashboard.html?change=${changeRequest.id}&payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/customer/dashboard.html?change=${changeRequest.id}&payment=cancelled`,
+      metadata: { changeRequestId: changeRequest.id },
+    });
+
+    sendData(req, res, { url: session.url }, "checkout");
+  } catch (err) {
+    res.status(500);
+    sendData(req, res, { error: `Stripe-Fehler: ${err.message}` }, "error");
+  }
+});
+
+app.get("/api/change-requests/:id/confirm-payment", requireAnyAuth, async (req, res) => {
+  if (!stripe) {
+    res.status(500);
+    return sendData(req, res, { error: "Zahlungen sind aktuell nicht konfiguriert (STRIPE_SECRET_KEY fehlt)." }, "error");
+  }
+
+  const changeRequest = db.getChangeRequestById(req.params.id);
+  if (!changeRequest) {
+    res.status(404);
+    return sendData(req, res, { error: "Change Request nicht gefunden." }, "error");
+  }
+  if (!canAccessChangeRequest(req, changeRequest)) {
+    res.status(403);
+    return sendData(req, res, { error: "Kein Zugriff auf diesen Change Request." }, "error");
+  }
+
+  const sessionId = req.query.session_id;
+  if (!sessionId) {
+    res.status(400);
+    return sendData(req, res, { error: "session_id fehlt." }, "error");
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status === "paid" && session.metadata.changeRequestId === changeRequest.id) {
+      const updated = db.patchChangeRequest(changeRequest.id, { paid: true, paidAt: new Date().toISOString() });
+      return sendData(req, res, { changeRequest: updated }, "changeRequest");
+    }
+
+    sendData(req, res, { changeRequest }, "changeRequest");
   } catch (err) {
     res.status(500);
     sendData(req, res, { error: `Stripe-Fehler: ${err.message}` }, "error");

@@ -39,6 +39,15 @@ const chatInput = document.getElementById("chat-input");
 const chatError = document.getElementById("chat-error");
 const closeChatBtn = document.getElementById("close-chat-btn");
 
+const myChangesList = document.getElementById("my-changes-list");
+const myChangesError = document.getElementById("my-changes-error");
+const changeForm = document.getElementById("change-form");
+const changeError = document.getElementById("change-error");
+const changeSubmitBtn = document.getElementById("change-submit");
+const changeTicketSelect = document.getElementById("change-ticketId");
+const changePackageSelect = document.getElementById("change-package");
+const changeDescriptionInput = document.getElementById("change-description");
+
 // ============================================================================
 // SESSION-GATE: nur eingeloggte KUNDEN duerfen diese Seite sehen
 // ============================================================================
@@ -66,8 +75,11 @@ document.getElementById("logout-btn").addEventListener("click", async () => {
 function init() {
   loadPackages();
   loadMyTickets();
+  loadChangePackages();
+  loadMyChanges();
   checkUrlParams();
   setInterval(loadMyTickets, 12000);
+  setInterval(loadMyChanges, 12000);
 }
 
 requireCustomerSession();
@@ -146,6 +158,19 @@ function renderMyTickets(tickets) {
   myTicketsList.querySelectorAll("[data-open-chat]").forEach((btn) => {
     btn.addEventListener("click", () => openTicketChat(btn.dataset.openChat));
   });
+
+  populateChangeTicketSelect(tickets);
+}
+
+// Haelt eine laufende Auswahl im Change-Formular am Leben, auch wenn die
+// Ticket-Liste im Hintergrund alle 12s neu geladen wird.
+function populateChangeTicketSelect(tickets) {
+  const previousValue = changeTicketSelect.value;
+  const options = (tickets || []).map((t) => `<option value="${t.id}">${t.id} — ${t.businessName}</option>`).join("");
+  changeTicketSelect.innerHTML = `<option value="" disabled ${previousValue ? "" : "selected"}>Choose a ticket…</option>${options}`;
+  if (previousValue && (tickets || []).some((t) => t.id === previousValue)) {
+    changeTicketSelect.value = previousValue;
+  }
 }
 
 // ============================================================================
@@ -260,6 +285,132 @@ async function loadTicketChatInfo(ticketId) {
 }
 
 // ============================================================================
+// AENDERUNGSWUENSCHE (Change Requests)
+// ============================================================================
+
+async function loadChangePackages() {
+  try {
+    const res = await fetch(`${API_BASE}/api/change-packages`);
+    const data = await res.json();
+    const options = data.changePackages.map((p) => `<option value="${p.id}">${p.name} — €${p.priceEUR}</option>`);
+    changePackageSelect.insertAdjacentHTML("beforeend", options.join(""));
+  } catch (err) {
+    console.error("Change-Pakete konnten nicht geladen werden:", err);
+  }
+}
+
+function changeStatusLabel(status) {
+  switch (status) {
+    case "new": return "RECEIVED";
+    case "in_progress": return "IN PROGRESS";
+    case "done": return "DONE";
+    default: return status.toUpperCase();
+  }
+}
+
+async function loadMyChanges() {
+  try {
+    const res = await fetch(`${API_BASE}/api/change-requests/mine`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not load change requests");
+    renderMyChanges(data.changeRequests);
+  } catch (err) {
+    myChangesList.innerHTML = `<p class="muted">Could not load your change requests.</p>`;
+  }
+}
+
+function renderMyChanges(changeRequests) {
+  if (!changeRequests || changeRequests.length === 0) {
+    myChangesList.innerHTML = `<p class="muted">No change requests yet.</p>`;
+    return;
+  }
+
+  myChangesList.innerHTML = changeRequests
+    .map(
+      (c) => `
+        <div class="my-change-row">
+          <span class="my-change-row__id">${c.id}</span>
+          <span class="my-change-row__meta">for ${c.ticketId} · ${c.changePackage}</span>
+          <span class="status-pill status-pill--${c.status}">${changeStatusLabel(c.status)}</span>
+          <span class="payment-pill payment-pill--${c.paid ? "paid" : "unpaid"}">${c.paid ? "PAID" : "UNPAID"}</span>
+          ${c.paid ? "" : `<button type="button" class="btn btn--accent btn--small" data-pay-change="${c.id}">Pay now</button>`}
+        </div>
+      `
+    )
+    .join("");
+
+  myChangesList.querySelectorAll("[data-pay-change]").forEach((btn) => {
+    btn.addEventListener("click", () => startChangeCheckout(btn.dataset.payChange));
+  });
+}
+
+changeForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  changeError.hidden = true;
+
+  const payload = {
+    ticketId: changeTicketSelect.value,
+    changePackage: changePackageSelect.value,
+    description: changeDescriptionInput.value.trim(),
+  };
+
+  if (!payload.ticketId || !payload.changePackage) {
+    changeError.textContent = "Please choose a ticket and a change size.";
+    changeError.hidden = false;
+    return;
+  }
+
+  changeSubmitBtn.disabled = true;
+  changeSubmitBtn.textContent = "Submitting…";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/change-requests`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Unknown error");
+
+    changeForm.reset();
+    loadMyChanges();
+  } catch (err) {
+    changeError.textContent = `Could not submit your change request: ${err.message}`;
+    changeError.hidden = false;
+  } finally {
+    changeSubmitBtn.disabled = false;
+    changeSubmitBtn.textContent = "Submit change request";
+  }
+});
+
+async function startChangeCheckout(changeRequestId) {
+  myChangesError.hidden = true;
+  try {
+    const res = await fetch(`${API_BASE}/api/change-requests/${encodeURIComponent(changeRequestId)}/checkout`, {
+      method: "POST",
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not start checkout");
+    window.location.href = data.url;
+  } catch (err) {
+    myChangesError.textContent = `Payment could not be started: ${err.message}`;
+    myChangesError.hidden = false;
+  }
+}
+
+async function confirmChangePayment(changeRequestId, sessionId) {
+  try {
+    await fetch(
+      `${API_BASE}/api/change-requests/${encodeURIComponent(changeRequestId)}/confirm-payment?session_id=${encodeURIComponent(sessionId)}`
+    );
+  } catch (err) {
+    // egal - loadMyChanges() zeigt sowieso den aktuellen Stand
+  }
+  window.history.replaceState({}, "", "dashboard.html");
+  loadMyChanges();
+}
+
+// ============================================================================
 // BEZAHLUNG (Stripe Checkout)
 // ============================================================================
 
@@ -371,14 +522,24 @@ chatForm.addEventListener("submit", async (event) => {
 function checkUrlParams() {
   const urlParams = new URLSearchParams(window.location.search);
   const ticketParam = urlParams.get("ticket");
-  if (!ticketParam) return;
-
+  const changeParam = urlParams.get("change");
   const paymentParam = urlParams.get("payment");
   const sessionId = urlParams.get("session_id");
 
+  if (changeParam) {
+    if (paymentParam === "success" && sessionId) {
+      confirmChangePayment(changeParam, sessionId);
+    } else {
+      window.history.replaceState({}, "", "dashboard.html"); // payment=cancelled o.ae. aufraeumen
+    }
+    return;
+  }
+
+  if (!ticketParam) return;
+
   if (paymentParam === "success" && sessionId) {
-    confirmPayment(ticketParam, sessionId);
+    confirmPayment(ticketParam, sessionId); // bestaetigt bei Stripe + oeffnet danach den Chat
   } else {
-    openTicketChat(ticketParam);
+    openTicketChat(ticketParam); // normaler Direkt-Link oder payment=cancelled
   }
 }
