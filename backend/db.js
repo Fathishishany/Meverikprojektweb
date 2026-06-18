@@ -229,6 +229,10 @@ function findCustomerByEmail(email) {
   return state.customers.find((c) => c.email.toLowerCase() === (email || "").toLowerCase());
 }
 
+function getCustomerById(id) {
+  return state.customers.find((c) => c.id === id);
+}
+
 function createCustomer({ name, email, passwordHash }) {
   const id = state.customers.length > 0 ? Math.max(...state.customers.map((c) => c.id)) + 1 : 1;
   const customer = { id, name, email, passwordHash };
@@ -335,6 +339,7 @@ module.exports = {
   getPackageById,
   findAdminByUsername,
   findCustomerByEmail,
+  getCustomerById,
   createCustomer,
   getAllChangePackages,
   getChangePackageById,

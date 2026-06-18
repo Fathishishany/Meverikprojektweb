@@ -60,6 +60,8 @@ const closeChangeChatBtn = document.getElementById("close-change-chat-btn");
 // SESSION-GATE: nur eingeloggte KUNDEN duerfen diese Seite sehen
 // ============================================================================
 
+let customerEmail = null;
+
 async function requireCustomerSession() {
   try {
     const res = await fetch(`${API_BASE}/api/session`);
@@ -69,6 +71,8 @@ async function requireCustomerSession() {
       return;
     }
     welcomeText.textContent = `Hi, ${data.username}`;
+    customerEmail = data.email;
+    document.getElementById("email").value = data.email || "";
     init();
   } catch (err) {
     window.location.href = "login.html";
@@ -216,6 +220,7 @@ orderForm.addEventListener("submit", async (event) => {
     if (!res.ok) throw new Error(data.error || "Unknown error");
 
     orderForm.reset();
+    document.getElementById("email").value = customerEmail || "";
     loadMyTickets();
     openTicketChat(data.ticket.id); // direkt ins neue Ticket springen (inkl. Chat)
   } catch (err) {

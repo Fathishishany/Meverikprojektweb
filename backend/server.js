@@ -107,7 +107,18 @@ app.get("/api/packages", async (req, res) => {
  * Jetzt NUR fuer eingeloggte Kunden ODER Admins (requireAnyAuth).
  */
 app.post("/api/tickets", requireAnyAuth, async (req, res) => {
-  const { customerName, email, businessName, packageId, message } = req.body;
+  const { customerName, businessName, packageId, message } = req.body;
+  let email = req.body.email;
+
+  // Ein eingeloggter KUNDE kann hier nicht irgendeine fremde Email
+  // eintragen - wir nehmen immer die echte Account-Email. Der Admin kann
+  // beim manuellen Anlegen weiterhin eine beliebige Email eintragen, da
+  // er oft Tickets fuer Kunden anlegt, die sich nicht selbst registriert
+  // haben (z.B. nach einem Telefonanruf).
+  if (req.session.role === "customer") {
+    const customer = db.getCustomerById(req.session.userId);
+    if (customer) email = customer.email;
+  }
 
   if (!customerName || !email || !businessName || !packageId) {
     res.status(400);
@@ -674,7 +685,12 @@ app.post("/api/logout", (req, res) => {
 // M9: SESSION-CHECK - Liefert Login-Status und Rolle ("admin" oder "customer")
 app.get("/api/session", (req, res) => {
   if (req.session && req.session.userId) {
-    sendData(req, res, { loggedIn: true, username: req.session.username, role: req.session.role }, "session");
+    let email = null;
+    if (req.session.role === "customer") {
+      const customer = db.getCustomerById(req.session.userId);
+      email = customer ? customer.email : null;
+    }
+    sendData(req, res, { loggedIn: true, username: req.session.username, role: req.session.role, email }, "session");
   } else {
     sendData(req, res, { loggedIn: false }, "session");
   }

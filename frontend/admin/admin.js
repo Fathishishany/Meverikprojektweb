@@ -229,8 +229,10 @@ function renderManifest(tickets) {
     .map(
       (t) => `
       <tr>
-<td class="id-cell">${needsAdminAttention(t) ? '<span class="unread-dot" title="New customer message"></span>' : ""}${t.id}</td>        <td>${t.businessName}</td>
+        <td class="id-cell">${needsAdminAttention(t) ? '<span class="unread-dot" title="New customer message"></span>' : ""}${t.id}</td>
+        <td>${t.businessName}</td>
         <td>${t.customerName}</td>
+        <td>${t.email}</td>
         <td>${packageName(t.packageId)}</td>
         <td>${t.country || "—"}</td>
         <td>
@@ -261,7 +263,7 @@ function renderBoardingPasses(tickets) {
         </div>
         <span class="payment-pill payment-pill--${t.paid ? "paid" : "unpaid"}">${t.paid ? "PAID" : "UNPAID"}</span>
         <p class="boarding-pass__business">${t.businessName}</p>
-        <p class="boarding-pass__meta">${t.customerName} · ${packageName(t.packageId)} · ${t.country || "—"}</p>
+        <p class="boarding-pass__meta">${t.customerName} · ${t.email} · ${packageName(t.packageId)} · ${t.country || "—"}</p>
         <div class="status-actions">${statusActionsHtml(t)}</div>
         <div class="row-actions">
           <button class="btn-icon" data-action="edit" data-id="${t.id}">Edit</button>
