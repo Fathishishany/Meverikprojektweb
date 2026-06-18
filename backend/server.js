@@ -135,8 +135,18 @@ app.post("/api/tickets", requireAnyAuth, async (req, res) => {
     return sendData(req, res, { error: `Unbekanntes Paket: ${packageId}` }, "error");
   }
 
-  const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "";
-  const country = await external.lookupCountry(clientIp.replace("::ffff:", ""));
+  // Erster Eintrag in "X-Forwarded-For" ist per Konvention immer die echte
+  // Besucher-IP, alles danach sind Adressen von Zwischenstationen
+  // (Load Balancer etc.). req.ip war hier unzuverlaessig, weil es je nach
+  // "trust proxy"-Tiefe von der falschen Seite der Liste zaehlt - bei
+  // Railways Forwarded-Kette landete das auf einer internen IP statt der
+  // echten, wodurch faelschlich "Lokal / Unbekannt" herauskam.
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const clientIp = (forwardedFor ? forwardedFor.split(",")[0].trim() : req.socket.remoteAddress || "").replace(
+    "::ffff:",
+    ""
+  );
+  const country = await external.lookupCountry(clientIp);
 
   // Wenn ein KUNDE (nicht Admin) das Ticket erstellt, merken wir uns
   // dessen Account-ID am Ticket - praktisch fuer spaetere Erweiterungen
