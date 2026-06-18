@@ -386,6 +386,53 @@ app.post("/api/change-requests", requireAnyAuth, (req, res) => {
   sendData(req, res, { changeRequest }, "changeRequest");
 });
 
+/**
+ * GET /api/change-requests/:id/messages
+ * POST /api/change-requests/:id/messages
+ * Gleiches Prinzip wie der Chat bei normalen Tickets.
+ */
+app.get("/api/change-requests/:id/messages", requireAnyAuth, (req, res) => {
+  const changeRequest = db.getChangeRequestById(req.params.id);
+  if (!changeRequest) {
+    res.status(404);
+    return sendData(req, res, { error: "Change Request nicht gefunden." }, "error");
+  }
+  if (!canAccessChangeRequest(req, changeRequest)) {
+    res.status(403);
+    return sendData(req, res, { error: "Kein Zugriff auf diesen Change Request." }, "error");
+  }
+  sendData(req, res, { messages: changeRequest.messages || [] }, "messages");
+});
+
+app.post("/api/change-requests/:id/messages", requireAnyAuth, (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) {
+    res.status(400);
+    return sendData(req, res, { error: "Nachricht darf nicht leer sein." }, "error");
+  }
+
+  const changeRequest = db.getChangeRequestById(req.params.id);
+  if (!changeRequest) {
+    res.status(404);
+    return sendData(req, res, { error: "Change Request nicht gefunden." }, "error");
+  }
+  if (!canAccessChangeRequest(req, changeRequest)) {
+    res.status(403);
+    return sendData(req, res, { error: "Kein Zugriff auf diesen Change Request." }, "error");
+  }
+
+  const message = {
+    sender: req.session.role,
+    senderName: req.session.username,
+    text: text.trim(),
+    createdAt: new Date().toISOString(),
+  };
+
+  const updated = db.addMessageToChangeRequest(req.params.id, message);
+  res.status(201);
+  sendData(req, res, { messages: updated.messages }, "messages");
+});
+
 app.patch("/api/change-requests/:id", requireAuth, (req, res) => {
   const { status } = req.body;
   if (!["new", "in_progress", "done"].includes(status)) {

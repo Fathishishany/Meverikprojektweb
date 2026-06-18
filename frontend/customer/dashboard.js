@@ -48,6 +48,14 @@ const changeTicketSelect = document.getElementById("change-ticketId");
 const changePackageSelect = document.getElementById("change-package");
 const changeDescriptionInput = document.getElementById("change-description");
 
+const changeChatPanel = document.getElementById("change-chat-panel");
+const changeChatInfo = document.getElementById("change-chat-info");
+const changeChatMessagesEl = document.getElementById("change-chat-messages");
+const changeChatForm = document.getElementById("change-chat-form");
+const changeChatInput = document.getElementById("change-chat-input");
+const changeChatError = document.getElementById("change-chat-error");
+const closeChangeChatBtn = document.getElementById("close-change-chat-btn");
+
 // ============================================================================
 // SESSION-GATE: nur eingeloggte KUNDEN duerfen diese Seite sehen
 // ============================================================================
@@ -322,8 +330,12 @@ async function loadMyChanges() {
 function renderMyChanges(changeRequests) {
   if (!changeRequests || changeRequests.length === 0) {
     myChangesList.innerHTML = `<p class="muted">No change requests yet.</p>`;
+    myChangesById = {};
     return;
   }
+
+  myChangesById = {};
+  changeRequests.forEach((c) => (myChangesById[c.id] = c));
 
   myChangesList.innerHTML = changeRequests
     .map(
@@ -334,6 +346,7 @@ function renderMyChanges(changeRequests) {
           <span class="status-pill status-pill--${c.status}">${changeStatusLabel(c.status)}</span>
           <span class="payment-pill payment-pill--${c.paid ? "paid" : "unpaid"}">${c.paid ? "PAID" : "UNPAID"}</span>
           ${c.paid ? "" : `<button type="button" class="btn btn--accent btn--small" data-pay-change="${c.id}">Pay now</button>`}
+          <button type="button" class="btn btn--ghost btn--small" data-chat-change="${c.id}">Chat</button>
         </div>
       `
     )
@@ -341,6 +354,9 @@ function renderMyChanges(changeRequests) {
 
   myChangesList.querySelectorAll("[data-pay-change]").forEach((btn) => {
     btn.addEventListener("click", () => startChangeCheckout(btn.dataset.payChange));
+  });
+  myChangesList.querySelectorAll("[data-chat-change]").forEach((btn) => {
+    btn.addEventListener("click", () => openChangeChat(btn.dataset.chatChange));
   });
 }
 
@@ -409,6 +425,137 @@ async function confirmChangePayment(changeRequestId, sessionId) {
   window.history.replaceState({}, "", "dashboard.html");
   loadMyChanges();
 }
+
+// ---- Chat zu einem Change Request (gleiches Prinzip wie der Ticket-Chat) --
+
+let myChangesById = {};
+let currentChangeChatId = null;
+let changeChatPollInterval = null;
+
+function changePackageLabel(id) {
+  switch (id) {
+    case "small": return "Small Change (€5)";
+    case "medium": return "Medium Change (€25)";
+    case "large": return "Large Change (€50)";
+    default: return id;
+  }
+}
+
+function openChangeChat(changeRequestId) {
+  currentChangeChatId = changeRequestId;
+  changeChatError.hidden = true;
+
+  dashboardGrid.hidden = true;
+  changeChatPanel.hidden = false;
+
+  renderChangeChatInfo(myChangesById[changeRequestId]);
+  loadChangeChatMessages(changeRequestId);
+
+  if (changeChatPollInterval) clearInterval(changeChatPollInterval);
+  changeChatPollInterval = setInterval(() => loadChangeChatMessages(changeRequestId), 4000);
+
+  changeChatPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function closeChangeChat() {
+  if (changeChatPollInterval) clearInterval(changeChatPollInterval);
+  changeChatPollInterval = null;
+  currentChangeChatId = null;
+
+  changeChatPanel.hidden = true;
+  dashboardGrid.hidden = false;
+
+  loadMyChanges();
+}
+closeChangeChatBtn.addEventListener("click", closeChangeChat);
+
+function renderChangeChatInfo(c) {
+  if (!c) {
+    changeChatInfo.innerHTML = `<p class="muted">Could not load this change request.</p>`;
+    return;
+  }
+  changeChatInfo.innerHTML = `
+    <p class="eyebrow muted">Change Request ${c.id}</p>
+    <h3>${changePackageLabel(c.changePackage)}</h3>
+    <p class="muted">For ticket ${c.ticketId} · ${changeStatusLabel(c.status)}</p>
+    <span class="payment-pill payment-pill--${c.paid ? "paid" : "unpaid"}">${c.paid ? "PAID" : "UNPAID"}</span>
+  `;
+}
+
+async function loadChangeChatMessages(changeRequestId) {
+  try {
+    const res = await fetch(`${API_BASE}/api/change-requests/${encodeURIComponent(changeRequestId)}/messages`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not load messages");
+    renderChangeChatMessages(data.messages);
+  } catch (err) {
+    // beim Hintergrund-Polling keinen Fehler anzeigen
+  }
+}
+
+function renderChangeChatMessages(messages) {
+  const wasNearBottom =
+    changeChatMessagesEl.scrollHeight - changeChatMessagesEl.scrollTop - changeChatMessagesEl.clientHeight < 40;
+
+  if (!messages || messages.length === 0) {
+    changeChatMessagesEl.innerHTML = `<p class="muted">No messages yet — say hello!</p>`;
+    return;
+  }
+
+  changeChatMessagesEl.innerHTML = messages
+    .map(() => `
+        <div class="chat-message">
+          <span class="chat-message__author"></span>
+          <p class="chat-message__text"></p>
+          <span class="chat-message__time"></span>
+        </div>
+      `)
+    .join("");
+
+  const rows = changeChatMessagesEl.querySelectorAll(".chat-message");
+  messages.forEach((m, i) => {
+    const row = rows[i];
+    const mine = m.sender === "customer";
+    if (mine) row.classList.add("chat-message--me");
+
+    row.querySelector(".chat-message__author").textContent = mine ? "You" : m.senderName;
+    row.querySelector(".chat-message__text").textContent = m.text;
+    row.querySelector(".chat-message__time").textContent = new Date(m.createdAt).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  });
+
+  if (wasNearBottom) {
+    changeChatMessagesEl.scrollTop = changeChatMessagesEl.scrollHeight;
+  }
+}
+
+changeChatForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  changeChatError.hidden = true;
+
+  const text = changeChatInput.value.trim();
+  if (!text || !currentChangeChatId) return;
+
+  changeChatInput.value = "";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/change-requests/${encodeURIComponent(currentChangeChatId)}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not send message");
+
+    renderChangeChatMessages(data.messages);
+    changeChatMessagesEl.scrollTop = changeChatMessagesEl.scrollHeight;
+  } catch (err) {
+    changeChatError.textContent = `Message could not be sent: ${err.message}`;
+    changeChatError.hidden = false;
+  }
+});
 
 // ============================================================================
 // BEZAHLUNG (Stripe Checkout)

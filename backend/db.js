@@ -232,6 +232,7 @@ function createChangeRequest(data) {
     description: data.description || "",
     status: "new",
     paid: false,
+    messages: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -239,6 +240,20 @@ function createChangeRequest(data) {
   state.changeRequests.push(changeRequest);
   saveData(state);
   return changeRequest;
+}
+
+function addMessageToChangeRequest(id, message) {
+  const idx = state.changeRequests.findIndex((c) => c.id === id);
+  if (idx === -1) return null;
+
+  if (!state.changeRequests[idx].messages) {
+    state.changeRequests[idx].messages = [];
+  }
+  state.changeRequests[idx].messages.push(message);
+  state.changeRequests[idx].updatedAt = new Date().toISOString();
+
+  saveData(state);
+  return state.changeRequests[idx];
 }
 
 function patchChangeRequest(id, partialData) {
@@ -285,4 +300,5 @@ module.exports = {
   createChangeRequest,
   patchChangeRequest,
   deleteChangeRequest,
+  addMessageToChangeRequest,
 };

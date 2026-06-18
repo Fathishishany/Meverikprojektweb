@@ -67,6 +67,31 @@
 
   </main>
 
+  <!-- ============================================================
+       CHAT-MODAL
+       ============================================================ -->
+  <div class="modal-overlay" id="chat-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="chat-modal-title">
+      <h2 id="chat-modal-title">Chat — <span id="chat-modal-id" class="mono"></span></h2>
+
+      <div class="modal-chat">
+        <div id="admin-chat-messages" class="chat-messages">
+          <p class="muted">Loading…</p>
+        </div>
+        <form id="admin-chat-form" class="chat-form" novalidate>
+          <label for="admin-chat-input" class="sr-only">Message</label>
+          <input type="text" id="admin-chat-input" placeholder="Reply to customer…" autocomplete="off" required />
+          <button type="submit" class="btn btn--accent">Send</button>
+        </form>
+        <p class="form-error" id="admin-chat-error" role="alert" hidden></p>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn--ghost" id="chat-modal-close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="changes.js"></script>
 </body>
 </html>

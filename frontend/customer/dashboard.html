@@ -138,6 +138,23 @@
       </div>
     </section>
 
+    <!-- Change-Request-Detail + Chat (gleiches Prinzip wie oben, nur fuer Change Requests) -->
+    <section class="panel" id="change-chat-panel" hidden>
+      <button type="button" class="btn btn--ghost" id="close-change-chat-btn">&larr; Back to your tickets</button>
+
+      <div id="change-chat-info" class="ticket-chat-info"></div>
+
+      <div class="chat-box">
+        <div id="change-chat-messages" class="chat-messages"></div>
+        <form id="change-chat-form" class="chat-form" novalidate>
+          <label for="change-chat-input" class="sr-only">Message</label>
+          <input type="text" id="change-chat-input" placeholder="Type a message…" autocomplete="off" required />
+          <button type="submit" class="btn btn--accent">Send</button>
+        </form>
+        <p class="form-error" id="change-chat-error" role="alert" hidden></p>
+      </div>
+    </section>
+
   </main>
 
   <script src="dashboard.js"></script>

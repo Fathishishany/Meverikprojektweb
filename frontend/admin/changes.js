@@ -129,6 +129,7 @@ function renderManifest(list) {
         <td>
           <div class="status-actions">${statusActionsHtml(c)}</div>
           <div class="row-actions">
+            <button class="btn-icon" data-action="chat" data-id="${c.id}">Chat</button>
             <button class="btn-icon btn-icon--danger" data-action="delete" data-id="${c.id}">Delete</button>
           </div>
         </td>
@@ -152,6 +153,7 @@ function renderBoardingPasses(list) {
         <p class="boarding-pass__meta">${c.customerName}${c.description ? " · " + c.description : ""}</p>
         <div class="status-actions">${statusActionsHtml(c)}</div>
         <div class="row-actions">
+          <button class="btn-icon" data-action="chat" data-id="${c.id}">Chat</button>
           <button class="btn-icon btn-icon--danger" data-action="delete" data-id="${c.id}">Delete</button>
         </div>
       </article>
@@ -170,6 +172,8 @@ function handleActionClick(event) {
     patchStatus(id, btn.dataset.status);
   } else if (btn.dataset.action === "delete") {
     deleteChangeRequest(id);
+  } else if (btn.dataset.action === "chat") {
+    openChat(id);
   }
 }
 manifestBody.addEventListener("click", handleActionClick);
@@ -219,3 +223,113 @@ async function deleteChangeRequest(id) {
     dashboardError.hidden = false;
   }
 }
+
+// ============================================================================
+// CHAT MIT DEM KUNDEN (im Modal) - gleiches Prinzip wie bei normalen Tickets
+// ============================================================================
+
+const chatModal = document.getElementById("chat-modal");
+const chatModalId = document.getElementById("chat-modal-id");
+const adminChatMessagesEl = document.getElementById("admin-chat-messages");
+const adminChatForm = document.getElementById("admin-chat-form");
+const adminChatInput = document.getElementById("admin-chat-input");
+const adminChatError = document.getElementById("admin-chat-error");
+
+let adminChatId = null;
+let adminChatPollInterval = null;
+
+function openChat(id) {
+  adminChatId = id;
+  chatModalId.textContent = id;
+  adminChatError.hidden = true;
+  adminChatMessagesEl.innerHTML = `<p class="muted">Loading…</p>`;
+  chatModal.hidden = false;
+
+  loadAdminChatMessages(id);
+
+  if (adminChatPollInterval) clearInterval(adminChatPollInterval);
+  adminChatPollInterval = setInterval(() => loadAdminChatMessages(id), 4000);
+}
+
+function closeChat() {
+  if (adminChatPollInterval) clearInterval(adminChatPollInterval);
+  adminChatPollInterval = null;
+  adminChatId = null;
+  chatModal.hidden = true;
+}
+document.getElementById("chat-modal-close").addEventListener("click", closeChat);
+chatModal.addEventListener("click", (event) => {
+  if (event.target === chatModal) closeChat(); // Klick auf den dunklen Hintergrund schliesst das Modal
+});
+
+async function loadAdminChatMessages(id) {
+  try {
+    const res = await fetch(`${API_BASE}/api/change-requests/${encodeURIComponent(id)}/messages`);
+    const data = await readJson(res);
+    renderAdminChatMessages(data.messages);
+  } catch (err) {
+    // beim Hintergrund-Polling keinen Fehler anzeigen
+  }
+}
+
+function renderAdminChatMessages(messages) {
+  const wasNearBottom =
+    adminChatMessagesEl.scrollHeight - adminChatMessagesEl.scrollTop - adminChatMessagesEl.clientHeight < 40;
+
+  if (!messages || messages.length === 0) {
+    adminChatMessagesEl.innerHTML = `<p class="muted">No messages yet.</p>`;
+    return;
+  }
+
+  adminChatMessagesEl.innerHTML = messages
+    .map(() => `
+        <div class="chat-message">
+          <span class="chat-message__author"></span>
+          <p class="chat-message__text"></p>
+          <span class="chat-message__time"></span>
+        </div>
+      `)
+    .join("");
+
+  const rows = adminChatMessagesEl.querySelectorAll(".chat-message");
+  messages.forEach((m, i) => {
+    const row = rows[i];
+    const mine = m.sender === "admin";
+    if (mine) row.classList.add("chat-message--me");
+
+    row.querySelector(".chat-message__author").textContent = mine ? "You" : m.senderName;
+    row.querySelector(".chat-message__text").textContent = m.text;
+    row.querySelector(".chat-message__time").textContent = new Date(m.createdAt).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  });
+
+  if (wasNearBottom) {
+    adminChatMessagesEl.scrollTop = adminChatMessagesEl.scrollHeight;
+  }
+}
+
+adminChatForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  adminChatError.hidden = true;
+
+  const text = adminChatInput.value.trim();
+  if (!text || !adminChatId) return;
+
+  adminChatInput.value = "";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/change-requests/${encodeURIComponent(adminChatId)}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    const data = await readJson(res);
+    renderAdminChatMessages(data.messages);
+    adminChatMessagesEl.scrollTop = adminChatMessagesEl.scrollHeight;
+  } catch (err) {
+    adminChatError.textContent = err.message;
+    adminChatError.hidden = false;
+  }
+});
