@@ -72,6 +72,50 @@ if (!state.changeRequests) {
   saveData(state);
 }
 
+// EINMALIGE MIGRATION: Die Pakete wurden urspruenglich mit deutschen Texten
+// angelegt, der Rest der Seite ist aber komplett auf Englisch. Wird nur
+// ausgefuehrt, wenn noch der alte deutsche Text gefunden wird - kein
+// wiederholtes Ueberschreiben bei jedem Start, falls die Texte spaeter
+// nochmal manuell angepasst werden.
+if (state.packages && state.packages.some((p) => p.tagline && p.tagline.includes("Fuer den schnellen Start"))) {
+  const packageTranslations = {
+    starter: {
+      tagline: "A fast start on the web.",
+      features: ["1 landing page (one-pager)", "Mobile-responsive design", "Contact form", "Delivery: 3 business days"],
+    },
+    professional: {
+      tagline: "The complete business card for your company.",
+      features: [
+        "Up to 5 subpages",
+        "Mobile-responsive design",
+        "Google Maps & opening hours",
+        "Basic SEO setup",
+        "Delivery: 5 business days",
+      ],
+    },
+    premium: {
+      tagline: "Maximum visibility, full control.",
+      features: [
+        "Unlimited subpages",
+        "Online appointment booking",
+        "Multilingual support",
+        "Advanced SEO support",
+        "Delivery: 7 business days",
+      ],
+    },
+  };
+
+  state.packages.forEach((p) => {
+    const t = packageTranslations[p.id];
+    if (t) {
+      p.tagline = t.tagline;
+      p.features = t.features;
+    }
+  });
+  saveData(state);
+  console.log("[db] Pakettexte von Deutsch auf Englisch migriert.");
+}
+
 function getAllTickets() {
   return state.tickets;
 }
