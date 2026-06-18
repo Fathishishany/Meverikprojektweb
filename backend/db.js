@@ -67,6 +67,7 @@ function createTicket(ticketData) {
     country: ticketData.country || "Unbekannt",
     qrCodeDataUrl: ticketData.qrCodeDataUrl || null,
     customerId: ticketData.customerId || null,
+    paid: false,
     messages: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

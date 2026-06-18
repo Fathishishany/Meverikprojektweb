@@ -239,16 +239,54 @@ async function loadTicketChatInfo(ticketId) {
     const qrImg = t.qrCodeDataUrl
       ? `<img class="ticket-chat-info__qr" src="${t.qrCodeDataUrl}" alt="QR code for ticket ${t.id}" />`
       : "";
+    const paymentHtml = t.paid
+      ? `<p class="payment-status payment-status--paid">✓ Paid</p>`
+      : `<button type="button" class="btn btn--accent" id="pay-btn">Pay now</button>`;
 
     ticketChatInfo.innerHTML = `
       <p class="eyebrow muted">Ticket ${t.id}</p>
       <h3>${t.businessName}</h3>
       <p class="muted">Package: ${t.packageId} · Status: ${statusLabel(t.status)}</p>
+      ${paymentHtml}
       ${qrImg}
     `;
+
+    if (!t.paid) {
+      document.getElementById("pay-btn").addEventListener("click", () => startCheckout(t.id));
+    }
   } catch (err) {
     ticketChatInfo.innerHTML = `<p class="muted">Could not load ticket info.</p>`;
   }
+}
+
+// ============================================================================
+// BEZAHLUNG (Stripe Checkout)
+// ============================================================================
+
+async function startCheckout(ticketId) {
+  try {
+    const res = await fetch(`${API_BASE}/api/tickets/${encodeURIComponent(ticketId)}/checkout`, {
+      method: "POST",
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not start checkout");
+    window.location.href = data.url; // Weiterleitung zur Stripe-Bezahlseite
+  } catch (err) {
+    chatError.textContent = `Payment could not be started: ${err.message}`;
+    chatError.hidden = false;
+  }
+}
+
+async function confirmPayment(ticketId, sessionId) {
+  try {
+    await fetch(
+      `${API_BASE}/api/tickets/${encodeURIComponent(ticketId)}/confirm-payment?session_id=${encodeURIComponent(sessionId)}`
+    );
+  } catch (err) {
+    // egal - openTicketChat() unten zeigt sowieso den aktuellen Stand an
+  }
+  window.history.replaceState({}, "", `dashboard.html?ticket=${ticketId}`);
+  openTicketChat(ticketId);
 }
 
 async function loadChatMessages(ticketId) {
@@ -333,5 +371,14 @@ chatForm.addEventListener("submit", async (event) => {
 function checkUrlParams() {
   const urlParams = new URLSearchParams(window.location.search);
   const ticketParam = urlParams.get("ticket");
-  if (ticketParam) openTicketChat(ticketParam);
+  if (!ticketParam) return;
+
+  const paymentParam = urlParams.get("payment");
+  const sessionId = urlParams.get("session_id");
+
+  if (paymentParam === "success" && sessionId) {
+    confirmPayment(ticketParam, sessionId);
+  } else {
+    openTicketChat(ticketParam);
+  }
 }

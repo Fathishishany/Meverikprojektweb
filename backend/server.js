@@ -1,17 +1,11 @@
 /**
  * server.js
- * ANFORDERUNGEN ERFÜLLT: M1, M3, M5, M6, M9
- * 
- * M1: Backend als einzelne Komponente (Express.js Server)
- * M3: HTTP(S) Kommunikation FE↔BE via REST-API
- * M5: Rückgabe als JSON oder XML (via sendData aus xml.js)
- * M6: GET, POST, PUT, DELETE, PATCH Methoden implementiert
- * M9: Session Management (express-session mit Login/Logout)
- * 
- * Siehe unten: GET /api/packages, POST /api/tickets, PUT /api/tickets/:id,
- * DELETE /api/tickets/:id, PATCH /api/tickets/:id, Login/Logout/Session-Check
+ * ----------------------------------------------------------------------
+ * Meverik Backend (BE).
  * ----------------------------------------------------------------------
  */
+
+require("dotenv").config();
 
 const express = require("express");
 const session = require("express-session");
@@ -24,6 +18,18 @@ const { sendData } = require("./xml");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Wichtig fuer Railway (laeuft hinter einem Reverse-Proxy): ohne das
+// wuerde req.protocol immer "http" zurueckgeben, auch wenn die Seite
+// per https aufgerufen wird - das wuerde Stripe-Redirect-URLs falsch
+// machen.
+app.set("trust proxy", 1);
+
+// Stripe nur initialisieren, wenn ein Key gesetzt ist. Ohne diesen Schutz
+// wuerde ein fehlender STRIPE_SECRET_KEY den GESAMTEN Server beim Start
+// crashen lassen (nicht nur die Bezahlfunktion).
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey ? require("stripe")(stripeSecretKey) : null;
 
 app.use(express.json());
 
@@ -213,7 +219,109 @@ app.post("/api/tickets/:id/messages", requireAnyAuth, (req, res) => {
   sendData(req, res, { messages: updatedTicket.messages }, "messages");
 });
 
-// M6: PUT Methode | M5: JSON+XML via sendData
+/**
+ * POST /api/tickets/:id/checkout
+ * Erstellt eine Stripe Checkout Session fuer das Paket dieses Tickets
+ * und gibt die URL zurueck, zu der der Browser weiterleiten soll.
+ */
+app.post("/api/tickets/:id/checkout", requireAnyAuth, async (req, res) => {
+  if (!stripe) {
+    res.status(500);
+    return sendData(req, res, { error: "Zahlungen sind aktuell nicht konfiguriert (STRIPE_SECRET_KEY fehlt)." }, "error");
+  }
+
+  const ticket = db.getTicketById(req.params.id);
+  if (!ticket) {
+    res.status(404);
+    return sendData(req, res, { error: "Ticket nicht gefunden." }, "error");
+  }
+  if (!canAccessTicket(req, ticket)) {
+    res.status(403);
+    return sendData(req, res, { error: "Kein Zugriff auf dieses Ticket." }, "error");
+  }
+  if (ticket.paid) {
+    res.status(400);
+    return sendData(req, res, { error: "Dieses Ticket ist bereits bezahlt." }, "error");
+  }
+
+  const pkg = db.getPackageById(ticket.packageId);
+  if (!pkg) {
+    res.status(400);
+    return sendData(req, res, { error: `Unbekanntes Paket: ${ticket.packageId}` }, "error");
+  }
+
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: { name: `Meverik ${pkg.name} – Ticket ${ticket.id}` },
+            unit_amount: pkg.priceEUR * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${baseUrl}/customer/dashboard.html?ticket=${ticket.id}&payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/customer/dashboard.html?ticket=${ticket.id}&payment=cancelled`,
+      metadata: { ticketId: ticket.id },
+    });
+
+    sendData(req, res, { url: session.url }, "checkout");
+  } catch (err) {
+    res.status(500);
+    sendData(req, res, { error: `Stripe-Fehler: ${err.message}` }, "error");
+  }
+});
+
+/**
+ * GET /api/tickets/:id/confirm-payment?session_id=...
+ * Wird aufgerufen, nachdem Stripe den Kunden zur success_url zurueck-
+ * geschickt hat. Fragt bei Stripe SELBST nach, ob wirklich bezahlt wurde
+ * (nie blind dem Frontend/der URL vertrauen), und markiert das Ticket
+ * erst dann als bezahlt.
+ */
+app.get("/api/tickets/:id/confirm-payment", requireAnyAuth, async (req, res) => {
+  if (!stripe) {
+    res.status(500);
+    return sendData(req, res, { error: "Zahlungen sind aktuell nicht konfiguriert (STRIPE_SECRET_KEY fehlt)." }, "error");
+  }
+
+  const ticket = db.getTicketById(req.params.id);
+  if (!ticket) {
+    res.status(404);
+    return sendData(req, res, { error: "Ticket nicht gefunden." }, "error");
+  }
+  if (!canAccessTicket(req, ticket)) {
+    res.status(403);
+    return sendData(req, res, { error: "Kein Zugriff auf dieses Ticket." }, "error");
+  }
+
+  const sessionId = req.query.session_id;
+  if (!sessionId) {
+    res.status(400);
+    return sendData(req, res, { error: "session_id fehlt." }, "error");
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status === "paid" && session.metadata.ticketId === ticket.id) {
+      const updated = db.patchTicket(ticket.id, { paid: true, paidAt: new Date().toISOString() });
+      return sendData(req, res, { ticket: updated }, "ticket");
+    }
+
+    sendData(req, res, { ticket }, "ticket");
+  } catch (err) {
+    res.status(500);
+    sendData(req, res, { error: `Stripe-Fehler: ${err.message}` }, "error");
+  }
+});
+
 app.put("/api/tickets/:id", requireAuth, (req, res) => {
   const { customerName, email, businessName, packageId, message, status, country } = req.body;
 

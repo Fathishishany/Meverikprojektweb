@@ -186,6 +186,16 @@ input:focus, select:focus, textarea:focus { border-color: var(--color-accent); o
 .ticket-chat-info h3 { margin: 6px 0 4px; }
 .ticket-chat-info__qr { width: 96px; height: 96px; border-radius: 10px; margin-top: 12px; }
 
+.payment-status {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  margin: 10px 0;
+}
+.payment-status--paid { background: rgba(120, 200, 140, 0.18); color: #8fe0a4; }
+
 .chat-box {
   background: var(--color-bg);
   border: 1px solid var(--color-border);

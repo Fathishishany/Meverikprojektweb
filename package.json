@@ -1,1 +1,1 @@
-{"name": "meverik", "private": true}
+{"name":"meverik","private":true,"dependencies":{"stripe":"^22.2.1"}}
