@@ -233,7 +233,10 @@ function renderManifest(tickets) {
         <td>${t.customerName}</td>
         <td>${packageName(t.packageId)}</td>
         <td>${t.country || "—"}</td>
-        <td><span class="status-pill status-pill--${t.status}">${statusLabel(t.status)}</span></td>
+        <td>
+          <span class="status-pill status-pill--${t.status}">${statusLabel(t.status)}</span>
+          <span class="payment-pill payment-pill--${t.paid ? "paid" : "unpaid"}">${t.paid ? "PAID" : "UNPAID"}</span>
+        </td>
         <td>
           <div class="status-actions">${statusActionsHtml(t)}</div>
           <div class="row-actions">
@@ -256,6 +259,7 @@ function renderBoardingPasses(tickets) {
           <span class="boarding-pass__id">${needsAdminAttention(t) ? '<span class="unread-dot" title="New customer message"></span>' : ""}${t.id}</span>
           <span class="status-pill status-pill--${t.status}">${statusLabel(t.status)}</span>
         </div>
+        <span class="payment-pill payment-pill--${t.paid ? "paid" : "unpaid"}">${t.paid ? "PAID" : "UNPAID"}</span>
         <p class="boarding-pass__business">${t.businessName}</p>
         <p class="boarding-pass__meta">${t.customerName} · ${packageName(t.packageId)} · ${t.country || "—"}</p>
         <div class="status-actions">${statusActionsHtml(t)}</div>

@@ -195,6 +195,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--color-accent); o
   margin: 10px 0;
 }
 .payment-status--paid { background: rgba(120, 200, 140, 0.18); color: #8fe0a4; }
+.payment-action { margin: 10px 0; }
 
 .chat-box {
   background: var(--color-bg);

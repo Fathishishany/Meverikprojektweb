@@ -241,7 +241,7 @@ async function loadTicketChatInfo(ticketId) {
       : "";
     const paymentHtml = t.paid
       ? `<p class="payment-status payment-status--paid">✓ Paid</p>`
-      : `<button type="button" class="btn btn--accent" id="pay-btn">Pay now</button>`;
+      : `<div class="payment-action"><button type="button" class="btn btn--accent" id="pay-btn">Pay now</button></div>`;
 
     ticketChatInfo.innerHTML = `
       <p class="eyebrow muted">Ticket ${t.id}</p>

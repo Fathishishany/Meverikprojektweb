@@ -288,6 +288,19 @@ input:focus, select:focus, textarea:focus { border-color: var(--color-accent); o
 .status-pill--in_progress { background: rgba(79, 209, 197, 0.18); color: var(--color-accent); }
 .status-pill--done { background: rgba(120, 200, 140, 0.18); color: #8fe0a4; }
 
+.payment-pill {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  margin: 4px 0 0 6px;
+  display: inline-block;
+}
+.payment-pill--paid { background: rgba(120, 200, 140, 0.18); color: #8fe0a4; }
+.payment-pill--unpaid { background: rgba(242, 184, 75, 0.12); color: var(--color-text-muted); }
+
 .status-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .row-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
