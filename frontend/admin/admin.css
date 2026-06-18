@@ -1,0 +1,488 @@
+/* ==========================================================================
+   Meverik – Admin Frontend (FE Komponente #2 / "Ops Dashboard")
+   --------------------------------------------------------------------------
+   Gleiche Design-Sprache wie das Kunden-Frontend (Navy + Teal + Mono-Schrift),
+   aber etwas "nuechterner" / funktionaler - wie ein Operations-Tool statt
+   einer Marketing-Seite. Die Variablen sind bewusst identisch zu style.css
+   benannt, damit man sofort sieht: das ist die gleiche Marke, nur eine
+   andere (zweite, unabhaengige) Frontend-Komponente.
+   ========================================================================== */
+
+:root {
+  --color-bg: #141d2b;
+  --color-bg-soft: #1a2538;
+  --color-surface: #1f2c45;
+  --color-surface-2: #283a59;
+  --color-border: #324460;
+  --color-text: #eef1f6;
+  --color-text-muted: #93a1ba;
+  --color-accent: #4fd1c5;
+  --color-accent-strong: #2bb8ab;
+  --color-signal: #f2b84b;
+  --color-danger: #f08a9c;
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --radius: 14px;
+  --radius-pill: 999px;
+  --container-width: 1140px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+[hidden] {
+  display: none !important;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
+h1 { font-size: 1.9rem; margin-bottom: 6px; }
+h2 { font-size: 1.3rem; }
+
+.muted { color: var(--color-text-muted); }
+.mono { font-family: var(--font-mono); }
+
+:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 3px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: 10px;
+}
+
+/* ---- Buttons -------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn--accent { background: var(--color-accent); color: #0c2420; }
+.btn--accent:hover { background: var(--color-accent-strong); }
+.btn--ghost { background: transparent; border-color: var(--color-border); color: var(--color-text); }
+.btn--ghost:hover { border-color: var(--color-accent); }
+.btn--full { width: 100%; }
+
+.btn-icon {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.btn-icon:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.btn-icon--danger:hover { border-color: var(--color-danger); color: var(--color-danger); }
+.btn-icon[disabled] {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ---- Form elements ---------------------------------------------------- */
+
+label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--color-text-muted);
+}
+
+input, select, textarea {
+  width: 100%;
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--color-accent); outline: none; }
+
+.field { margin-bottom: 14px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-error {
+  color: var(--color-danger);
+  font-size: 0.85rem;
+  margin: 4px 0 12px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* ==========================================================================
+   LOGIN-ANSICHT
+   ========================================================================== */
+
+.login-view {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(ellipse at top right, rgba(79, 209, 197, 0.14), transparent 55%), var(--color-bg);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+.brand__dot { color: var(--color-accent); }
+
+.login-card__lead { margin: 6px 0 24px; font-size: 0.92rem; }
+
+.login-hint {
+  margin-top: 18px;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+}
+.login-hint strong { color: var(--color-text); }
+
+.back-link {
+  display: inline-block;
+  margin-top: 18px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.back-link:hover { color: var(--color-accent); }
+
+/* ==========================================================================
+   DASHBOARD-ANSICHT
+   ========================================================================== */
+
+.topbar {
+  background: rgba(20, 29, 43, 0.95);
+  border-bottom: 1px solid var(--color-border);
+}
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.85rem;
+}
+
+.dashboard-main { padding: 32px 24px 64px; }
+
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 22px;
+}
+.panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel__header h2 { margin: 0; }
+
+.ticket-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--color-border);
+}
+
+/* ---- Filterleiste ------------------------------------------------------ */
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.filter-btn {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.filter-btn.is-active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(79, 209, 197, 0.1);
+}
+
+/* ---- Status-Pille (geteilt von Tabelle + Karten) ------------------------ */
+
+.status-pill {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.status-pill--new { background: rgba(242, 184, 75, 0.18); color: var(--color-signal); }
+.status-pill--in_progress { background: rgba(79, 209, 197, 0.18); color: var(--color-accent); }
+.status-pill--done { background: rgba(120, 200, 140, 0.18); color: #8fe0a4; }
+
+.status-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+/* ==========================================================================
+   DESKTOP: MANIFEST-TABELLE
+   Das ist die "dedizierte Desktop-Ansicht" fuer S4 innerhalb DIESER
+   Komponente: eine echte <table>, nicht nur eine umgebrochene Liste.
+   ========================================================================== */
+
+.manifest-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+.manifest {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.manifest th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+.manifest td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.manifest tr:last-child td { border-bottom: none; }
+.manifest tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+.manifest .id-cell { font-family: var(--font-mono); color: var(--color-accent); }
+
+.unread-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-signal);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+/* Boarding-Pass-Karten sind am Desktop standardmaessig versteckt */
+.boarding-passes { display: none; }
+
+/* ==========================================================================
+   MOBILE: BOARDING-PASS-KARTEN (S4 Mobile-View)
+   Eine komplett andere Struktur als die Tabelle - gestapelte Karten im
+   Ticket-/Boarding-Pass-Look, damit es auf kleinen Screens lesbar bleibt
+   statt eine Tabelle zu zerquetschen.
+   ========================================================================== */
+
+.boarding-pass {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.boarding-pass::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, var(--color-border) 0 8px, transparent 8px 16px);
+}
+.boarding-pass__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.boarding-pass__id { font-family: var(--font-mono); color: var(--color-accent); font-size: 1.05rem; }
+.boarding-pass__business { font-weight: 600; margin-bottom: 2px; }
+.boarding-pass__meta { font-size: 0.82rem; color: var(--color-text-muted); margin-bottom: 12px; }
+
+/* ==========================================================================
+   BEARBEITEN-MODAL
+   ========================================================================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 22, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+.modal {
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+.modal h2 { margin-bottom: 18px; }
+
+/* ==========================================================================
+   RESPONSIVE: dedizierte Mobile- vs. Desktop-Ansicht (S4)
+   Unter 760px verschwindet die Tabelle komplett und die Boarding-Pass-
+   Karten erscheinen - keine simple Verkleinerung, sondern ein eigener
+   Layout-Baum fuer kleine Screens.
+   ========================================================================== */
+
+@media (max-width: 760px) {
+  .manifest-wrap { display: none; }
+  .boarding-passes { display: block; }
+
+  .form-grid { grid-template-columns: 1fr; }
+  .panel__header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .filter-bar { flex-direction: column; align-items: stretch; }
+  .topbar__right { gap: 10px; }
+  .topbar__right span { display: none; } /* Begruessungstext spart Platz am Handy */
+  .dashboard-main { padding: 24px 16px 48px; }
+}
+
+/* ==========================================================================
+   CHAT MIT DEM KUNDEN (im Bearbeiten-Modal)
+   ========================================================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.modal-chat {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+.modal-chat h3 { margin-bottom: 12px; }
+
+.chat-messages {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-right: 4px;
+}
+
+.chat-message {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--color-surface-2);
+  align-self: flex-start;
+}
+.chat-message--me {
+  align-self: flex-end;
+  background: rgba(79, 209, 197, 0.18);
+}
+.chat-message__author {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+.chat-message__text {
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chat-message__time {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  text-align: right;
+}
+
+.chat-form {
+  display: flex;
+  gap: 10px;
+}
+.chat-form input { flex-grow: 1; }

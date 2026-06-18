@@ -1,0 +1,106 @@
+{
+  "packages": [
+    {
+      "id": "starter",
+      "name": "Starter",
+      "priceEUR": 299,
+      "tagline": "Fuer den schnellen Start ins Web.",
+      "features": [
+        "1 Landingpage (One-Pager)",
+        "Mobile-responsives Design",
+        "Kontaktformular",
+        "Lieferzeit: 3 Werktage"
+      ]
+    },
+    {
+      "id": "professional",
+      "name": "Professional",
+      "priceEUR": 499,
+      "tagline": "Die komplette Visitenkarte fuer dein Geschaeft.",
+      "features": [
+        "Bis zu 5 Unterseiten",
+        "Mobile-responsives Design",
+        "Google Maps & Oeffnungszeiten",
+        "Basis-SEO Einrichtung",
+        "Lieferzeit: 5 Werktage"
+      ]
+    },
+    {
+      "id": "premium",
+      "name": "Premium",
+      "priceEUR": 799,
+      "tagline": "Maximale Sichtbarkeit, volle Kontrolle.",
+      "features": [
+        "Unbegrenzte Unterseiten",
+        "Online-Terminbuchung",
+        "Mehrsprachigkeit",
+        "Erweiterte SEO-Betreuung",
+        "Lieferzeit: 7 Werktage"
+      ]
+    }
+  ],
+  "tickets": [
+    {
+      "id": "MV-1000",
+      "customerName": "HJSDIO",
+      "email": "meverikmusik@gmail.com",
+      "businessName": "DSADAS",
+      "packageId": "professional",
+      "message": "sadadsa",
+      "status": "new",
+      "country": "Lokal / Unbekannt",
+      "qrCodeDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAADcAQMAAAAhlF3CAAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB80lEQVRYhdVYMZKEMAxzhoKSJ/CU/IywP8tT9gmUFBm8kh2Yu5ubreMUDKAUaBxJNiLfVlGsS5a36Lnoq+GVtoUv9T0euPGTr/lY9zYfecdDTg1bhfuDgZNqJc8iMwnP/r6A9bDgjBI0WSqIrRVVCQx2ZrU08ExRweeAUR77dErWf07fIKAr+5bDC1Qoh1+yjwL2hTqQIkG5/jrrOCCpVPtuuumGHaIKYmAXDdwmXNJpAuBWXMxSk6VDMLCbFPz2MJ7ZeIrzHAxMeiC9+N2T+qIrKXQeDhTLA4J3VbD1WNV4jgdOuEsnbxgAeq6VPrSbpcYCCwSdyRMxdjArVmVr51WJBW7iMvYFv9Vqyu6xPBgIFfhd6ZZqVXGdBwNN1Dhgq6K1Q0Gw4+J+Ybc3HMhjnxlcZdIjM5Gz73DZRwI9uMDTWjvlAbNCJQ0HcmULOmo5Nbgv0+Ex47FAcx40EaDBdGBrZyv1CSAWyGYOPBnLOwpip6wkt9TRQPZDnIUVWcaBmE0EUyAiiH6Ij/ttqXpnxTsY6Ita8QbVeureXI8HFn60/YmgpT4DsR+wWKDP9s528f9D6jyfwX8ksA8z7v0+epGdxXJIEI01la39FxBAEYkJwmo9kV3ZPvcMCNoB6wGdnQqUUAKCt7JVf/yJkD7bxwK/rQ/ofvMOlxaZFQAAAABJRU5ErkJggg==",
+      "customerId": 1,
+      "messages": [
+        {
+          "sender": "customer",
+          "senderName": "User Test",
+          "text": "Hello!",
+          "createdAt": "2026-06-18T00:38:50.652Z"
+        },
+        {
+          "sender": "admin",
+          "senderName": "admin",
+          "text": "Hi? wie kann ich helfen?",
+          "createdAt": "2026-06-18T00:46:47.716Z"
+        },
+        {
+          "sender": "admin",
+          "senderName": "admin",
+          "text": "Brauche hilfe!!!",
+          "createdAt": "2026-06-18T00:46:54.692Z"
+        },
+        {
+          "sender": "customer",
+          "senderName": "User Test",
+          "text": "Nein",
+          "createdAt": "2026-06-18T00:47:14.263Z"
+        },
+        {
+          "sender": "admin",
+          "senderName": "admin",
+          "text": "Hallo",
+          "createdAt": "2026-06-18T01:07:45.031Z"
+        }
+      ],
+      "createdAt": "2026-06-18T00:29:52.293Z",
+      "updatedAt": "2026-06-18T01:36:20.744Z"
+    }
+  ],
+  "nextTicketNumber": 1001,
+  "admins": [
+    {
+      "id": 1,
+      "username": "admin",
+      "passwordHash": "$2a$10$v68RkzR.1V7zdE.BsYR16OnciKXxDFVG.0WiD6nfTN6pAXU8BdDk2"
+    }
+  ],
+  "customers": [
+    {
+      "id": 1,
+      "name": "User Test",
+      "email": "meverikmusik@gmail.com",
+      "passwordHash": "$2a$10$2Bu0JxkYj5B0SgChJsjnl.khx/w1ei0apu/Ex488ANxdoG0gZpLRy"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Dashboard — Meverik</title>
+  <meta name="description" content="Manage your website tickets and chat with the Meverik team." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar__inner container">
+      <a href="index.html" class="brand">Meverik<span class="brand__dot">.</span></a>
+      <div class="topbar__right">
+        <span class="muted" id="welcome-text"></span>
+        <button class="btn btn--ghost" id="logout-btn" type="button">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container dashboard-main">
+
+    <!-- Ticket-Liste + neues Ticket anlegen -->
+    <div id="dashboard-grid">
+      <section class="panel">
+        <div class="panel__header">
+          <h1>Your tickets</h1>
+        </div>
+        <div id="my-tickets-list">
+          <p class="muted">Loading…</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2>Request a new website</h2>
+        </div>
+        <form id="order-form" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="customerName">Your name</label>
+              <input type="text" id="customerName" required autocomplete="name" />
+            </div>
+            <div class="field">
+              <label for="email">Email address</label>
+              <input type="email" id="email" required autocomplete="email" />
+            </div>
+            <div class="field">
+              <label for="businessName">Business name</label>
+              <input type="text" id="businessName" required autocomplete="organization" />
+            </div>
+            <div class="field">
+              <label for="packageId">Package</label>
+              <select id="packageId" required>
+                <option value="" disabled selected>Choose a package…</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="message">What does your website need?</label>
+            <textarea id="message" rows="3" placeholder="e.g. one page, contact form, photo gallery, opening hours…"></textarea>
+          </div>
+
+          <p class="form-error" id="order-error" role="alert" hidden></p>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--accent" id="order-submit">Submit request</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- Ticket-Detail + Chat mit dem Admin (ersetzt optisch das Grid, wenn offen) -->
+    <section class="panel" id="ticket-chat-panel" hidden>
+      <button type="button" class="btn btn--ghost" id="close-chat-btn">&larr; Back to your tickets</button>
+
+      <div id="ticket-chat-info" class="ticket-chat-info"></div>
+
+      <div class="chat-box">
+        <div id="chat-messages" class="chat-messages"></div>
+        <form id="chat-form" class="chat-form" novalidate>
+          <label for="chat-input" class="sr-only">Message</label>
+          <input type="text" id="chat-input" placeholder="Type a message…" autocomplete="off" required />
+          <button type="submit" class="btn btn--accent">Send</button>
+        </form>
+        <p class="form-error" id="chat-error" role="alert" hidden></p>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

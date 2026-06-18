@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!-- ANFORDERUNGEN ERFÜLLT: S2, M2, S4
+     S2: Zweite FE-Komponente unabhängig von Kunden-Frontend
+     M2: Frontend in HTML5 (<!DOCTYPE html>, semantische Tags, Meta-Tags)
+     S4: Responsive Design (meta viewport, CSS Media Queries in admin.css)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meverik — Ops Dashboard</title>
+  <meta name="description" content="Internal dashboard for the Meverik team to manage incoming website tickets." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       LOGIN-ANSICHT
+       Wird gezeigt, solange GET /api/session sagt loggedIn:false.
+       ============================================================ -->
+  <section class="login-view" id="view-login">
+    <div class="login-card">
+      <p class="brand">Meverik<span class="brand__dot">.</span> <span class="muted">Ops</span></p>
+      <h1>Team Login</h1>
+      <p class="muted login-card__lead">Sign in to manage incoming website tickets.</p>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required />
+        </div>
+
+        <p class="form-error" id="login-error" hidden></p>
+
+        <button type="submit" class="btn btn--accent btn--full" id="login-submit">Sign in</button>
+      </form>
+
+      <a href="/customer/index.html" class="back-link">← Back to customer site</a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       DASHBOARD-ANSICHT
+       Wird gezeigt, solange GET /api/session sagt loggedIn:true.
+       ============================================================ -->
+  <section class="dashboard-view" id="view-dashboard" hidden>
+
+    <header class="topbar">
+      <div class="topbar__inner container">
+        <p class="brand">Meverik<span class="brand__dot">.</span> <span class="muted">Ops</span></p>
+        <div class="topbar__right">
+          <span class="muted" id="welcome-text"></span>
+          <button class="btn btn--ghost" id="logout-btn" type="button">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container dashboard-main">
+
+      <!-- ---- Neues Ticket manuell anlegen (POST) -------------------- -->
+      <section class="panel">
+        <div class="panel__header">
+          <h2>Tickets</h2>
+          <button class="btn btn--accent" id="new-ticket-toggle" type="button">+ New ticket</button>
+        </div>
+
+        <form id="new-ticket-form" class="ticket-form" hidden novalidate>
+          <p class="eyebrow">Create ticket manually</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="nt-customerName">Customer name</label>
+              <input type="text" id="nt-customerName" required />
+            </div>
+            <div class="field">
+              <label for="nt-email">Email</label>
+              <input type="email" id="nt-email" required />
+            </div>
+            <div class="field">
+              <label for="nt-businessName">Business name</label>
+              <input type="text" id="nt-businessName" required />
+            </div>
+            <div class="field">
+              <label for="nt-packageId">Package</label>
+              <select id="nt-packageId" required></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="nt-message">Message</label>
+            <textarea id="nt-message" rows="2"></textarea>
+          </div>
+
+          <p class="form-error" id="new-ticket-error" hidden></p>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn--ghost" id="new-ticket-cancel">Cancel</button>
+            <button type="submit" class="btn btn--accent" id="new-ticket-submit">Create ticket</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ---- Filterleiste -------------------------------------------- -->
+      <div class="filter-bar">
+        <div class="filter-group" id="filter-group" role="group" aria-label="Filter tickets by status">
+          <button class="filter-btn is-active" data-status="" type="button">All</button>
+          <button class="filter-btn" data-status="new" type="button">New</button>
+          <button class="filter-btn" data-status="in_progress" type="button">In progress</button>
+          <button class="filter-btn" data-status="done" type="button">Done</button>
+        </div>
+        <button class="btn btn--ghost" id="refresh-btn" type="button">Refresh</button>
+      </div>
+
+      <p class="form-error" id="dashboard-error" hidden></p>
+      <p class="muted" id="empty-state" hidden>No tickets match this filter.</p>
+
+      <!-- ---- DESKTOP: Tabellen-Ansicht "Manifest" (S4 Desktop-View) --- -->
+      <div class="manifest-wrap">
+        <table class="manifest">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Business</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Package</th>
+              <th scope="col">Country</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="manifest-body"></tbody>
+        </table>
+      </div>
+
+      <!-- ---- MOBILE: gestapelte "Boarding Pass" Karten (S4 Mobile-View) -->
+      <div class="boarding-passes" id="boarding-passes"></div>
+
+    </main>
+  </section>
+
+  <!-- ============================================================
+       BEARBEITEN-MODAL (PUT /api/tickets/:id)
+       ============================================================ -->
+  <div class="modal-overlay" id="edit-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <h2 id="edit-modal-title">Edit ticket <span id="edit-modal-id" class="mono"></span></h2>
+
+      <form id="edit-form" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="ed-customerName">Customer name</label>
+            <input type="text" id="ed-customerName" required />
+          </div>
+          <div class="field">
+            <label for="ed-email">Email</label>
+            <input type="email" id="ed-email" required />
+          </div>
+          <div class="field">
+            <label for="ed-businessName">Business name</label>
+            <input type="text" id="ed-businessName" required />
+          </div>
+          <div class="field">
+            <label for="ed-packageId">Package</label>
+            <select id="ed-packageId" required></select>
+          </div>
+          <div class="field">
+            <label for="ed-status">Status</label>
+            <select id="ed-status" required>
+              <option value="new">new</option>
+              <option value="in_progress">in_progress</option>
+              <option value="done">done</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ed-country">Country</label>
+            <input type="text" id="ed-country" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="ed-message">Message</label>
+          <textarea id="ed-message" rows="2"></textarea>
+        </div>
+
+        <p class="form-error" id="edit-error" hidden></p>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn--ghost" id="edit-cancel">Cancel</button>
+          <button type="submit" class="btn btn--accent" id="edit-submit">Save (PUT)</button>
+        </div>
+      </form>
+
+      <div class="modal-chat">
+        <h3>Chat with customer</h3>
+        <div id="admin-chat-messages" class="chat-messages">
+          <p class="muted">Loading…</p>
+        </div>
+        <form id="admin-chat-form" class="chat-form" novalidate>
+          <label for="admin-chat-input" class="sr-only">Message</label>
+          <input type="text" id="admin-chat-input" placeholder="Reply to customer…" autocomplete="off" required />
+          <button type="submit" class="btn btn--accent">Send</button>
+        </form>
+        <p class="form-error" id="admin-chat-error" role="alert" hidden></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

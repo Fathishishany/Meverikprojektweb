@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log in — Meverik</title>
+  <meta name="description" content="Log in or create an account to request your small business website." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar__inner container">
+      <a href="index.html" class="brand">Meverik<span class="brand__dot">.</span></a>
+      <a href="index.html" class="nav-auth__link">← Back to home</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="auth-page">
+      <div class="container auth-page__inner">
+
+        <!-- wird angezeigt, falls man schon eingeloggt ist und die Seite trotzdem aufruft -->
+        <div id="already-logged-in" hidden>
+          <p class="eyebrow">You're already logged in</p>
+          <h2 id="already-logged-in-text"></h2>
+          <a href="dashboard.html" class="btn btn--accent" id="already-logged-in-link">Continue to your order</a>
+        </div>
+
+        <div id="auth-forms">
+          <p class="eyebrow">Step 1 of 1</p>
+          <h2>Log in or create an account</h2>
+          <p class="muted">You need an account to request a website. It only takes a minute.</p>
+
+          <div class="auth-tabs">
+            <button type="button" class="auth-tab is-active" id="tab-login" data-tab="login">Log in</button>
+            <button type="button" class="auth-tab" id="tab-register" data-tab="register">Register</button>
+          </div>
+
+          <form id="login-form-customer" novalidate>
+            <div class="field">
+              <label for="login-email">Email</label>
+              <input type="email" id="login-email" required autocomplete="email" />
+            </div>
+            <div class="field">
+              <label for="login-password">Password</label>
+              <input type="password" id="login-password" required autocomplete="current-password" />
+            </div>
+            <p class="form-error" id="login-error-customer" role="alert" hidden></p>
+            <button type="submit" class="btn btn--accent btn--full">Log in</button>
+          </form>
+
+          <form id="register-form" novalidate hidden>
+            <div class="field">
+              <label for="register-name">Your name</label>
+              <input type="text" id="register-name" required autocomplete="name" />
+            </div>
+            <div class="field">
+              <label for="register-email">Email</label>
+              <input type="email" id="register-email" required autocomplete="email" />
+            </div>
+            <div class="field">
+              <label for="register-password">Password</label>
+              <input type="password" id="register-password" required autocomplete="new-password" />
+            </div>
+            <p class="form-error" id="register-error" role="alert" hidden></p>
+            <button type="submit" class="btn btn--accent btn--full">Create account</button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script src="login.js"></script>
+</body>
+</html>

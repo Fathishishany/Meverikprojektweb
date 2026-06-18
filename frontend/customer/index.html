@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<!-- ANFORDERUNGEN ERFÜLLT: M2, S4
+     M2: Frontend in HTML5 (<!DOCTYPE html>, semantische Tags, Meta-Tags)
+     S4: Responsive Design (meta viewport, CSS Media Queries in style.css)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meverik — Websites for Small Businesses, Delivered Fast</title>
+  <meta name="description" content="Request a professional website for your small business and track its build like a flight: ticket in, website out." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============== NAVIGATION ============== -->
+  <header class="topbar">
+    <div class="topbar__inner container">
+      <a href="#" class="brand">Meverik<span class="brand__dot">.</span></a>
+
+      <nav class="nav" id="main-nav">
+        <a href="#dilemma">The Problem</a>
+        <a href="#solution">How it Works</a>
+        <a href="#packages">Packages</a>
+        <a href="login.html" id="nav-order-link">Get a Website</a>
+      </nav>
+
+      <div class="nav-auth" id="nav-auth">
+        <a href="login.html" class="nav-auth__link">Log in</a>
+      </div>
+
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Toggle navigation menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============== HERO ============== -->
+    <section class="hero">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow">Small Business Web Delivery</p>
+          <h1>The Need for Speed:<br />Websites for Small Businesses</h1>
+          <p class="hero__lead">
+            Imagine owning a small business. You don't have time to brief an agency
+            for three weeks. You submit a ticket, we build, you go live —
+            tracked the whole way, like a departure board for your website.
+          </p>
+          <div class="hero__actions">
+            <a href="login.html" class="btn btn--accent" id="hero-order-btn">Request your website</a>
+            <a href="login.html" class="btn btn--ghost" id="hero-track-btn">Track an existing ticket</a>
+          </div>
+        </div>
+
+        <div class="hero__board" aria-hidden="true">
+          <div class="board">
+            <div class="board__header">
+              <span class="board__dot"></span>
+              <span>LIVE TICKET BOARD</span>
+            </div>
+            <div class="board__row board__row--in">
+              <span class="board__id">MV-1042</span>
+              <span class="board__name">Lena's Backstube</span>
+              <span class="board__status board__status--new">RECEIVED</span>
+            </div>
+            <div class="board__row board__row--in">
+              <span class="board__id">MV-1041</span>
+              <span class="board__name">Atlas Bike Repair</span>
+              <span class="board__status board__status--progress">BUILDING</span>
+            </div>
+            <div class="board__row board__row--in">
+              <span class="board__id">MV-1039</span>
+              <span class="board__name">Studio Nour</span>
+              <span class="board__status board__status--done">DELIVERED</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== DILEMMA ============== -->
+    <section class="split" id="dilemma">
+      <div class="container split__grid">
+        <div>
+          <h2>The Small Business<br />Website Dilemma</h2>
+        </div>
+        <ul class="arrow-list">
+          <li><span class="arrow-list__icon">→</span> High costs associated with traditional web agencies.</li>
+          <li><span class="arrow-list__icon">→</span> Protracted development timelines impacting market entry.</li>
+          <li><span class="arrow-list__icon">→</span> Technical complexities and unfamiliar jargon for owners.</li>
+          <li><span class="arrow-list__icon">→</span> Ineffective or confusing communication processes with developers.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============== SOLUTION / PROCESS ============== -->
+    <section class="solution" id="solution">
+      <div class="container">
+        <p class="eyebrow eyebrow--center">From Request to Live, Simplified</p>
+        <h2 class="center">Our Seamless Solution: Instant Online Presence</h2>
+
+        <div class="process">
+          <div class="process__step">
+            <span class="process__label">01</span>
+            <h3>Online Request</h3>
+            <p>Customers submit a simple form outlining their website needs.</p>
+          </div>
+          <div class="process__step">
+            <span class="process__label">02</span>
+            <h3>Automated Ticket</h3>
+            <p>A tracked ticket is instantly created for our expert team.</p>
+          </div>
+          <div class="process__step">
+            <span class="process__label">03</span>
+            <h3>Rapid Development</h3>
+            <p>Our professionals efficiently build the requested website.</p>
+          </div>
+          <div class="process__step">
+            <span class="process__label">04</span>
+            <h3>Swift Delivery</h3>
+            <p>The finished, professional website is delivered quickly.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== PACKAGES ============== -->
+    <section class="packages" id="packages">
+      <div class="container">
+        <p class="eyebrow eyebrow--center">Choose your ticket class</p>
+        <h2 class="center">Packages</h2>
+        <p class="muted center">Prices shown in EUR. Live converted prices are fetched from an exchange-rate service.</p>
+
+        <div class="package-grid" id="package-grid">
+          <p class="muted center">Loading packages…</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== TARGET MARKET ============== -->
+    <section class="split split--reverse">
+      <div class="container split__grid">
+        <div class="info-card">
+          <h3>Target Audience</h3>
+          <p>We empower small businesses, ambitious startups, independent freelancers, and local shops looking for a strong online presence without the traditional overhead.</p>
+        </div>
+        <div class="info-card info-card--accent">
+          <h3>Marketing Channels</h3>
+          <p>Our strategy includes targeted Instagram ads, engaging TikTok content, robust SEO, Google Business integration, and a rewarding referral system to drive growth.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============== FOOTER ============== -->
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div>
+        <h2>Conclusion &amp; Our Vision</h2>
+        <p class="muted">We make professional websites accessible for every small business, empowering them to thrive in the digital landscape.</p>
+      </div>
+      <ul class="arrow-list">
+        <li><span class="arrow-list__icon">→</span> Fast: Get your professional website online swiftly and without hassle.</li>
+        <li><span class="arrow-list__icon">→</span> Simple: Enjoy a streamlined process from initial request to final delivery.</li>
+        <li><span class="arrow-list__icon">→</span> Affordable: Access high-quality web solutions without the hefty price tag.</li>
+      </ul>
+    </div>
+    <div class="container footer__bottom">
+      <p>&copy; 2026 Meverik. University project.</p>
+      <a href="/admin/admin.html">Team login</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
