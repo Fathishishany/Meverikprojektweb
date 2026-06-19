@@ -9,9 +9,15 @@ const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 
-const DATA_FILE = path.join(__dirname, "data.json");
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const DATA_FILE = path.join(DATA_DIR, "data.json");
 
 function loadData() {
+  if (!fs.existsSync(DATA_FILE)) {
+    const empty = { tickets: [], nextTicketNumber: 1000, admins: [], customers: [] };
+    fs.writeFileSync(DATA_FILE, JSON.stringify(empty, null, 2), "utf-8");
+    return empty;
+  }
   const raw = fs.readFileSync(DATA_FILE, "utf-8");
   return JSON.parse(raw);
 }
@@ -129,6 +135,10 @@ function createTicket(ticketData) {
   const id = `MV-${nextNumber}`;
   state.nextTicketNumber = nextNumber + 1;
 
+  const autoMessage = ticketData.message && ticketData.message.trim()
+    ? `Thanks for your request! Here's what you told us:\n\n"${ticketData.message.trim()}"\n\nA member of our team will review your ticket and get back to you shortly.`
+    : "Thanks for your request! A member of our team will review your ticket and get back to you shortly. In the mean time, you can pay for your order if you haven't already.";
+
   const ticket = {
     id,
     customerName: ticketData.customerName,
@@ -141,7 +151,14 @@ function createTicket(ticketData) {
     qrCodeDataUrl: ticketData.qrCodeDataUrl || null,
     customerId: ticketData.customerId || null,
     paid: false,
-    messages: [],
+    messages: [
+      {
+        sender: "admin",
+        senderName: "Meverik Team",
+        text: autoMessage,
+        createdAt: new Date().toISOString(),
+      },
+    ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

@@ -3,7 +3,7 @@
     {
       "id": "starter",
       "name": "Starter",
-      "priceEUR": 299,
+      "priceEUR": 100,
       "tagline": "Fuer den schnellen Start ins Web.",
       "features": [
         "1 Landingpage (One-Pager)",
@@ -15,7 +15,7 @@
     {
       "id": "professional",
       "name": "Professional",
-      "priceEUR": 499,
+      "priceEUR": 200,
       "tagline": "Die komplette Visitenkarte fuer dein Geschaeft.",
       "features": [
         "Bis zu 5 Unterseiten",
@@ -28,11 +28,11 @@
     {
       "id": "premium",
       "name": "Premium",
-      "priceEUR": 799,
+      "priceEUR": 300,
       "tagline": "Maximale Sichtbarkeit, volle Kontrolle.",
       "features": [
         "Unbegrenzte Unterseiten",
-        "Online-Terminbuchung",
+        "Modernstes Design mit Animationen",
         "Mehrsprachigkeit",
         "Erweiterte SEO-Betreuung",
         "Lieferzeit: 7 Werktage"
